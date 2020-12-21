@@ -9,7 +9,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:lets_chat/chat.dart';
 import 'package:lets_chat/const.dart';
-// import 'package:lets_chat/settings.dart';
 import 'package:lets_chat/widget/loading.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -88,9 +87,6 @@ class HomeScreenState extends State<HomeScreen> {
   void onItemMenuPress(Choice choice) {
     if (choice.title == 'Log out') {
       handleSignOut();
-    } else {
-      // Navigator.push(
-      //     context, MaterialPageRoute(builder: (context) => ChatSettings()));
     }
   }
 
@@ -111,16 +107,10 @@ class HomeScreenState extends State<HomeScreen> {
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
 
     print(message);
-//    print(message['body'].toString());
-//    print(json.encode(message));
 
     await flutterLocalNotificationsPlugin.show(0, message['title'].toString(),
         message['body'].toString(), platformChannelSpecifics,
         payload: json.encode(message));
-
-//    await flutterLocalNotificationsPlugin.show(
-//        0, 'plain title', 'plain body', platformChannelSpecifics,
-//        payload: 'item x');
   }
 
   Future<bool> onBackPress() {
@@ -346,25 +336,13 @@ class HomeScreenState extends State<HomeScreen> {
               ),
               Flexible(
                 child: Container(
-                  child: Column(
-                    children: <Widget>[
-                      Container(
-                        child: Text(
-                          'Nickname: ${document.data()['nickname']}',
-                          style: TextStyle(color: primaryColor),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
-                      ),
-                      Container(
-                        child: Text(
-                          'About me: ${document.data()['aboutMe'] ?? 'Not available'}',
-                          style: TextStyle(color: primaryColor),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
-                      )
-                    ],
+                  child: Container(
+                    child: Text(
+                      'Name: ${document.data()['nickname']}',
+                      style: TextStyle(color: primaryColor),
+                    ),
+                    alignment: Alignment.centerLeft,
+                    margin: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 5.0),
                   ),
                   margin: EdgeInsets.only(left: 20.0),
                 ),

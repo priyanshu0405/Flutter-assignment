@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'const.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -67,6 +69,7 @@ class ChatScreenState extends State<ChatScreen> {
   bool isLoading;
   bool isShowSticker;
   String imageUrl;
+  String videoUrl;
 
   final TextEditingController textEditingController = TextEditingController();
   final ScrollController listScrollController = ScrollController();
@@ -103,8 +106,17 @@ class ChatScreenState extends State<ChatScreen> {
     isLoading = false;
     isShowSticker = false;
     imageUrl = '';
+    videoUrl = '';
 
     readLocal();
+  }
+
+  _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   void onFocusChange() {
@@ -159,8 +171,32 @@ class ChatScreenState extends State<ChatScreen> {
       setState(() {
         isLoading = true;
       });
-      uploadFile();
+      uploadVideo();
     }
+  }
+
+  Future uploadVideo() async {
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    FirebaseStorage storage = FirebaseStorage.instance;
+    Reference ref = storage.ref().child(fileName);
+    UploadTask uploadTask =
+        ref.putFile(videoFile, SettableMetadata(contentType: 'video/mp4'));
+    uploadTask.whenComplete(() {
+      ref.getDownloadURL().then((downloadUrl) {
+        videoUrl = downloadUrl;
+        print(downloadUrl);
+        setState(() {
+          isLoading = false;
+          onSendMessage(videoUrl, 2);
+        });
+      }, onError: (err) {
+        print(err);
+        setState(() {
+          isLoading = false;
+        });
+        Fluttertoast.showToast(msg: 'This file is not an video');
+      });
+    });
   }
 
   Future uploadFile() async {
@@ -185,7 +221,6 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   void onSendMessage(String content, int type) {
-    // type: 0 = text, 1 = image, 2 = sticker
     if (content.trim() != '') {
       textEditingController.clear();
 
@@ -284,11 +319,16 @@ class ChatScreenState extends State<ChatScreen> {
                     )
                   // Sticker
                   : Container(
-                      child: Image.asset(
-                        'images/${document.data()['content']}.gif',
-                        width: 100.0,
-                        height: 100.0,
-                        fit: BoxFit.cover,
+                      height: 35,
+                      width: 200,
+                      child: ListTile(
+                        title: Text('Video'),
+                        trailing: IconButton(
+                          icon: Icon(Icons.file_download),
+                          onPressed: () {
+                            _launchURL(document.data()['content']);
+                          },
+                        ),
                       ),
                       margin: EdgeInsets.only(
                           bottom: isLastMessageRight(index) ? 20.0 : 10.0,
@@ -384,11 +424,16 @@ class ChatScreenState extends State<ChatScreen> {
                             margin: EdgeInsets.only(left: 10.0),
                           )
                         : Container(
-                            child: Image.asset(
-                              'images/${document.data()['content']}.gif',
-                              width: 100.0,
-                              height: 100.0,
-                              fit: BoxFit.cover,
+                            height: 35,
+                            width: 200,
+                            child: ListTile(
+                              title: Text('Video'),
+                              trailing: IconButton(
+                                icon: Icon(Icons.file_download),
+                                onPressed: () {
+                                  _launchURL(document.data()['content']);
+                                },
+                              ),
                             ),
                             margin: EdgeInsets.only(
                                 bottom: isLastMessageRight(index) ? 20.0 : 10.0,

@@ -74,14 +74,12 @@ class LoginScreenState extends State<LoginScreen> {
         (await firebaseAuth.signInWithCredential(credential)).user;
 
     if (firebaseUser != null) {
-      // Check is already sign up
       final QuerySnapshot result = await FirebaseFirestore.instance
           .collection('users')
           .where('id', isEqualTo: firebaseUser.uid)
           .get();
       final List<DocumentSnapshot> documents = result.docs;
       if (documents.length == 0) {
-        // Update data to server if new user
         FirebaseFirestore.instance
             .collection('users')
             .doc(firebaseUser.uid)
@@ -93,13 +91,11 @@ class LoginScreenState extends State<LoginScreen> {
           'chattingWith': null
         });
 
-        // Write data to local
         currentUser = firebaseUser;
         await prefs.setString('id', currentUser.uid);
         await prefs.setString('nickname', currentUser.displayName);
         await prefs.setString('photoUrl', currentUser.photoURL);
       } else {
-        // Write data to local
         await prefs.setString('id', documents[0].data()['id']);
         await prefs.setString('nickname', documents[0].data()['nickname']);
         await prefs.setString('photoUrl', documents[0].data()['photoUrl']);
